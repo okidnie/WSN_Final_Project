@@ -109,7 +109,6 @@ if __name__=="__main__":
 			# Value is now getting smaller again so we have passed closest position
 			if value < max_val:
 				angle = motor.move(angle, direction)	# Move motor back a position
-				range_factor = (abs(value - max_val))	# Adjust value range
 				rssi, tx_power = getRSSIandTX()
 				searching = False
 				print ("This is as close as I can get")
