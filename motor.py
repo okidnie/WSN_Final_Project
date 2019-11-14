@@ -8,15 +8,16 @@ pwm.start(0)
 
 def setAngle(angle):
 	duty = angle/18 + 2
-	#for i in range(20):
-	
-	#duty = 50
 	GPIO.output(03, True)
 	pwm.ChangeDutyCycle(duty)
 	time.sleep(1)
 	GPIO.output(03, False)
 	pwm.ChangeDutyCycle(0)
-	
+
+def motorCleanup():
+	pwn.stop()
+	GPIO.cleanup()
+
 #if __name__=="__main__":
 #	while True:
 #		angle = input("Enter angle: ") 

@@ -82,7 +82,7 @@ if __name__=="__main__":
 	angle = 0
 	value = 0
 	val_small = 0
-	direction = 0 		# 0 if left, 1 is right
+	direction = 0 		# 0 if turn left, 1 is turn right
 	lowest_val = 0
 	for i in range(10):
 		print "----------------------------"
@@ -91,6 +91,7 @@ if __name__=="__main__":
 		val_range = [round_rssi-2, round_rssi-1, round_rssi, round_rssi+1, round_rssi+2]
 		while value not in val_range:
 			old_val = value
+
 			if direction == 0:
 				print "Try Left"
 				angle = angle + 18
@@ -99,10 +100,13 @@ if __name__=="__main__":
 				print "Try Right"
 				angle = angle - 18
 				motor.setAngle(angle)
+
 			rssi, tx_power = getRSSIandTX()
 			value = round(rssi[0])
+
 			if value < old_val:
 				direction = 1 if direction == 0 else 0
+
 			val_list = [value, old_val, lowest_val]
 			lowest_val = max(val_list)
 			
@@ -113,8 +117,11 @@ if __name__=="__main__":
 	rssi, tx_power = getRSSIandTX()
 	d1 = pathloss(rssi[0], tx_power[0])
 
-	#print receiver # Debug Receiver value
+	# Debug Receiver value
 	print "rssi: {}".format(rssi)
+
+	# Clean motor pwm and GPIO
+	motor.motorCleanup()
 
 
 
