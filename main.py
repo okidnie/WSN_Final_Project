@@ -63,7 +63,7 @@ def getRSSIandTX():
 def pathloss(rssi, tx_power):
 	n = 2.0
 	distance = 10.0**((tx_power - rssi) / (10.0 * n))
-	
+
 	return distance
 	
 # Calculate location of poit of interest based on its distance from 3 defined points
@@ -108,8 +108,8 @@ if __name__=="__main__":
 
 			# Value is now getting smaller again so we have passed closest position
 			if value < max_val:
-				angle = motor.move(angle, direction)							# Change move motor back a position
-				range_factor = (abs(value - max_val))							# Adjust value range
+				angle = motor.move(angle, direction)	# Move motor back a position
+				range_factor = (abs(value - max_val))	# Adjust value range
 				rssi, tx_power = getRSSIandTX()
 				searching = False
 				print ("This is as close as I can get")
