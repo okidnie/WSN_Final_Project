@@ -6,7 +6,7 @@ Nathan Klassens
 Owen Kidnie
 '''
 
-import  RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 
 GPIO.setmode(GPIO.BOARD)
@@ -22,16 +22,20 @@ def setAngle(angle):
 	GPIO.output(03, False)
 	pwm.ChangeDutyCycle(0)
 
+def move(angle, direction):
+	if direction == 0:
+		print "Try turning left"
+		angle = angle + 18
+		setAngle(angle)
+	else:
+		print "Try turning right"
+		angle = angle - 18
+		setAngle(angle)
+
+	return angle
+
 def motorCleanup():
-	pwn.stop()
+	pwm.stop()
 	GPIO.cleanup()
 
-#if __name__=="__main__":
-#	while True:
-#		angle = input("Enter angle: ") 
-#		print angle
-#		setAngle(angle)
-#		time.sleep(2)
-#	pwm.stop()
-#	GPIO.cleanup()
 

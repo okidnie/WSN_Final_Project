@@ -64,7 +64,6 @@ def pathloss(rssi, tx_power):
 	n = 2.0
 	distance = 10.0**((tx_power - rssi) / (10.0 * n))
 	
-	print distance
 	return distance
 	
 # Calculate location of poit of interest based on its distance from 3 defined points
@@ -79,43 +78,53 @@ def trilateration(d1, d2, d3, p, q, r):
 
 # Main
 if __name__=="__main__":
-	angle = 0
-	value = 0
-	val_small = 0
+	angle = 0			# Current angle of the motor
+	value = 0			# Current RSSI value
 	direction = 0 		# 0 if turn left, 1 is turn right
-	lowest_val = 0
+	max_val = 0			# The max RSSI value in a cycle
+	searching = False	# wether the system needs to be searching for signal direction or not
+	range_factor = 2	# error value
 	for i in range(10):
 		print "----------------------------"
 		rssi, tx_power = getRSSIandTX()
-		round_rssi = round(rssi[0])
-		val_range = [round_rssi-2, round_rssi-1, round_rssi, round_rssi+1, round_rssi+2]
-		while value not in val_range:
-			old_val = value
+		val_range = range(round(rssi[0]) - range_factor, round(rssi[0]) + range_factor, 1)
+		old_val = value
+		max_val = value
 
-			if direction == 0:
-				print "Try Left"
-				angle = angle + 18
-				motor.setAngle(angle)
-			else:
-				print "Try Right"
-				angle = angle - 18
-				motor.setAngle(angle)
+		# Transmitter has changed position so set range back to default to attempt best accuracy
+		if value not in val_range:
+			range_factor = 2
+			searching = True
+
+		while searching == True:
+			angle = motor.move(angle, direction)
 
 			rssi, tx_power = getRSSIandTX()
 			value = round(rssi[0])
 
+			# Value is smaller then previous so change direction
 			if value < old_val:
-				direction = 1 if direction == 0 else 0
+				direction = 1 if direction == 0 else 0  # Change direction
 
-			val_list = [value, old_val, lowest_val]
-			lowest_val = max(val_list)
-			
-		value = round_rssi
+			# Value is now getting smaller again so we have passed closest position
+			if value < max_val:
+				angle = motor.move(angle, direction)							# Change move motor back a position
+				range_factor = (abs(value - max_val))							# Adjust value range
+				rssi, tx_power = getRSSIandTX()
+				searching = False
+				print ("This is as close as I can get")
+				d1 = pathloss(rssi[0], tx_power[0])
+				print ("The distance to transmitter is: {}".format(d1))
+
+			max_val = max([value, max_val])
+			old_val = value
+
+		value = rssi
 		print "rssi: {}".format(rssi)
 		print "----------------------------"
-	
+
 	rssi, tx_power = getRSSIandTX()
-	d1 = pathloss(rssi[0], tx_power[0])
+	d1 = pathloss(rssi[0])
 
 	# Debug Receiver value
 	print "rssi: {}".format(rssi)
