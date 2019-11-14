@@ -1,3 +1,11 @@
+'''
+This file controls a motor through GPIO pinout 3 of a raspberry pi 3.
+
+Authors:
+Nathan Klassens
+Owen Kidnie
+'''
+
 import  RPi.GPIO as GPIO
 import time
 
