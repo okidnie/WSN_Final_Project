@@ -3,7 +3,7 @@ Used to test out control over the motor
 
 Authors:
 Nathan Klassens
-Owen Kidnie
+Owen Kidnie 
 '''
 
 import motor
