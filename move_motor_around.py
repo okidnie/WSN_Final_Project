@@ -7,11 +7,14 @@ Owen Kidnie
 '''
 
 import motor
+import time 
 
 if __name__=="__main__":
 	while True:
 		angle = input("Enter angle: ") 
 		print angle
-		setAngle(angle)
+		motor.setAngle(angle)
 		time.sleep(2)
+		
+	motor.motorCleanup()
 
