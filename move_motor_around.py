@@ -10,11 +10,10 @@ import motor
 import time 
 
 if __name__=="__main__":
-	while True:
-		angle = input("Enter angle: ") 
-		print angle
-		motor.setAngle(angle)
-		time.sleep(2)
-		
-	motor.motorCleanup()
+	option = input("Would you like to control the angle? Yes(1) or No(0)? ")
+	
+	if option == 1:	
+		motor.controlMotorAngle()
+	else:
+		motor.motorFullSpin()
 
