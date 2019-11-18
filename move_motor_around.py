@@ -2,7 +2,7 @@
 Used to test out control over the motor
 
 Authors:
-Nathan Klassens
+Nathan Klassen
 Owen Kidnie 
 '''
 

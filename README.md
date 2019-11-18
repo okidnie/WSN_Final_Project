@@ -1,4 +1,4 @@
-# Wireless Sensors Networks Final Project Code
+# Wireless Sensor Networks Final Project Code
 This code is used to locate the direction of a Bluetooth signal based on RSSI.  A reciever on an arm attached to a motor will spin around to find the direction of the strongest RSSI.
 
 Authors:  
