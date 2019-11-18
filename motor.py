@@ -12,26 +12,30 @@ import RPi.GPIO as GPIO
 import time
 
 servo1Pin = 03
+servo2Pin = 04
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(servo1Pin, GPIO.OUT)
-pwm = GPIO.PWM(servo1Pin, 50)
-pwm.start(0)
+GPIO.setup(servo2Pin, GPIO.OUT)
+pwm1 = GPIO.PWM(servo1Pin, 50)
+pwm2 = GPIO.PWM(servo2Pin, 50)
+pwm1.start(0)
+pwm2.start(12.5)
 
 
-def setAngle(angle):
+def setAngle(angle, servoPin=servo1Pin, pwm=pwm1):
 	'''
 	Sets the angle of the servo motor
 	:param angle: the desired angle to set the servo motor to
 	'''
 
 	duty = angle/18 + 2
-	GPIO.output(03, True)
+	GPIO.output(servoPin, True)
 	pwm.ChangeDutyCycle(duty)
 	time.sleep(1)
-	GPIO.output(03, False)
+	GPIO.output(servoPin, False)
 	pwm.ChangeDutyCycle(0)
 
-def move(angle, direction):
+def move(angle, direction, servoNum):
 	'''
 	Moves the servo motor left or right by 18 degrees
 	:param angle: 		The current angle of the servo motor
@@ -47,18 +51,40 @@ def move(angle, direction):
 		angle = angle - 18
 
 	if angle > 180:
-		angle = 180
+		if servoNum == 1:
+			servoNum = 2
+			angle = 18
+			setAngle(180, servo1Pin, pwm1)
+			setAngle(angle, servo2Pin, pwm2)
+		else:
+			servoNum = 1
+			angle = 18
+			setAngle(angle, servo1Pin, pwm1)
+			setAngle(0, servo2Pin, pwm2)
 	elif angle < 0:
-		angle = 0
+		if servoNum == 1:
+			servoNum = 2
+			angle = 162
+			setAngle(angle, servo2Pin, pwm2)
+			setAngle(180, servo1Pin, pwm1)
+		else:
+			servoNum = 1
+			angle = 162
+			setAngle(0, servo2Pin, pwm2)
+			setAngle(angle, servo1Pin, pwm1)
+	else:
+		if servoNum == 1:
+			setAngle(angle, servo1Pin, pwm1)
+		else:
+			setAngle(angle, servo2Pin, pwm2)
 
-	setAngle(angle)
-	return angle
+	return angle, servoNum
 
 def motorCleanup():
 	'''
 	cleans up GPIO pin and stops servo motor
 	'''
-	pwm.stop()
+	pwm1.stop()
 	GPIO.cleanup()
 	
 def motorFullSpin():
@@ -69,27 +95,27 @@ def motorFullSpin():
 	print("Starting to spin\n")
 	try:
 		while True:
-			pwm.ChangeDutyCycle(0)
+			pwm1.ChangeDutyCycle(0)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(2.5)
+			pwm1.ChangeDutyCycle(2.5)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(5)
+			pwm1.ChangeDutyCycle(5)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(7.5)
+			pwm1.ChangeDutyCycle(7.5)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(10)
+			pwm1.ChangeDutyCycle(10)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(12.5)
+			pwm1.ChangeDutyCycle(12.5)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(10)
+			pwm1.ChangeDutyCycle(10)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(7.5)
+			pwm1.ChangeDutyCycle(7.5)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(5)
+			pwm1.ChangeDutyCycle(5)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(2.5)
+			pwm1.ChangeDutyCycle(2.5)
 			time.sleep(0.5)
-			pwm.ChangeDutyCycle(0)
+			pwm1.ChangeDutyCycle(0)
 			time.sleep(0.5)
 	except KeyboardInterrupt:
 		motorCleanup()

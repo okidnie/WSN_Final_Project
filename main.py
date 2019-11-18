@@ -101,6 +101,7 @@ def trilateration(d1, d2, d3, p, q, r):
 # Main
 if __name__=="__main__":
 	angle = 0			# Current angle of the motor
+	servoNum = 1
 	value = 0			# Current RSSI value
 	direction = 0 		# 0 if turn left, 1 is turn right
 	max_val = 0			# The max RSSI value in a cycle
@@ -119,7 +120,7 @@ if __name__=="__main__":
 			searching = True
 
 		while searching == True:
-			angle = motor.move(angle, direction)
+			angle, servoNum = motor.move(angle, direction, servoNum)
 
 			rssi, tx_power = getRSSIandTX()
 			value = round(rssi[0])
@@ -130,7 +131,7 @@ if __name__=="__main__":
 
 			# Value is now getting smaller again so we have passed closest position
 			if value < max_val:
-				angle = motor.move(angle, direction)	# Move motor back a position
+				angle, servoNum = motor.move(angle, direction, servoNum)	# Move motor back a position
 				rssi, tx_power = getRSSIandTX()
 				searching = False
 				print ("This is as close as I can get")
