@@ -1,4 +1,14 @@
-#Beacon scanner code taken from https://github.com/switchdoclabs/iBeacon-Scanner-.git 
+'''
+main.py
+=======
+
+Author:		Nathan Klassen
+Author:		Owen Kidnie
+
+The main file used in this project.
+Makes use of motor.py to find the direction of a Bluetooth signal.
+Beacon scanner code taken from https://github.com/switchdoclabs/iBeacon-Scanner-.git.
+'''
 
 from __future__ import division
 import os
@@ -19,8 +29,12 @@ iterations = 25 # Number of times the pi scans for the beacons
 
 num_beacons = len(beacons)
 
-# Obtain the RSSI and TX values of each packet
 def getRSSIandTX():
+	'''
+	Obtains the RSSI and TX values of the packet
+	:return: rssi, and tx_power
+	'''
+
 	# Value containers
 	rssi = [[]]
 	tx_power = [[]]
@@ -61,6 +75,14 @@ def getRSSIandTX():
 
 # Calculates the distance between two points of interest using RSSI and TX Power
 def pathloss(rssi, tx_power):
+	'''
+	Calculates the distance between two points of interest using RSSI and TX Power
+
+	:param rssi: 		The RSSI of the packet
+	:param tx_power: 	The TX power of the packet
+	:return:			The distance from the packet
+	'''
+
 	n = 2.0
 	distance = 10.0**((tx_power - rssi) / (10.0 * n))
 

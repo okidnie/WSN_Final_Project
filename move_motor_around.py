@@ -1,9 +1,12 @@
 '''
-Used to test out control over the motor
+move_motor_around.py
+====================
 
-Authors:
-Nathan Klassen
-Owen Kidnie 
+Author:		Nathan Klassen
+Author:		Owen Kidnie
+
+Used for testing the motor through user input in the terminal.
+To run through terminal: sudo python move_motor_around.py
 '''
 
 import motor
