@@ -24,7 +24,7 @@ import sys
 import bluetooth._bluetooth as bluez
 import time
 
-beacons = ["a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"] # List of beacon UUIDs
+beacons = ["a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"] # List of beacon UUIDs #second gimbal UUID: b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1 (i think)
 iterations = 25 # Number of times the pi scans for the beacons
 
 num_beacons = len(beacons)
