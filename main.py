@@ -6,7 +6,7 @@ Author:		Nathan Klassen
 Author:		Owen Kidnie
 
 The main file used in this project.
-Makes use of motor.py to find the direction of a Bluetooth signal.
+=Makes use of motor.py to find the direction of a Bluetooth signal.
 Beacon scanner code taken from https://github.com/switchdoclabs/iBeacon-Scanner-.git.
 '''
 
@@ -98,53 +98,60 @@ def trilateration(d1, d2, d3, p, q, r):
 	receiver.append(y)
 	return receiver
 
+def search(rssi, angle):
+        while(1):
+		print("searhing...")
+		angle = motor.move(angle, 0)
+		rssi_left_list, tx_power_left = getRSSIandTX()
+		rssi_left = rssi_left_list[0]
+		angle = motor.move(angle, 1)
+		angle = motor.move(angle, 1)
+		rssi_right_list, tx_power_right = getRSSIandTX()
+		rssi_right = rssi_right_list[0]
+
+		print "rssi left: ", rssi_left
+		print "rssi right: ", rssi_right
+		print "rssi: ", rssi
+
+		if rssi > rssi_left and rssi > rssi_right:
+			angle = motor.move(angle, 0)
+			return angle, rssi
+		elif rssi_left >= rssi and rssi_left >= rssi_right:
+			rssi = rssi_left
+			angle = motor.move(angle, 0)
+			angle = motor.move(angle, 0)
+		elif rssi_right >= rssi and rssi_right >= rssi_left:
+			rssi= rssi_right
+		else:
+			print("IM CONFUSED")
+	return angle, rssi
+
 # Main
 if __name__=="__main__":
 	angle = 0			# Current angle of the motor
 	value = 0			# Current RSSI value
 	direction = 0 		# 0 if turn left, 1 is turn right
-	max_val = 0			# The max RSSI value in a cycle
+        old_rssi = 0			# The max RSSI value in a cycle
 	searching = False	# wether the system needs to be searching for signal direction or not
 	range_factor = 2	# error value
-	for i in range(10):
-		print "----------------------------"
-		rssi, tx_power = getRSSIandTX()
-		val_range = range(round(rssi[0]) - range_factor, round(rssi[0]) + range_factor, 1)
-		old_val = value
-		max_val = value
+	while(1):
+		rssi_list, tx_power = getRSSIandTX()
+		rssi = rssi_list[0]
+                #val_range = range(int(round(rssi[0]) - range_factor), int(round(rssi[0]) + range_factor))
+		
+		if (abs(rssi-old_rssi) > 2):
+			#find node again
+			print("Target has moved")
+			angle, rssi = search(rssi, angle)
+			print("------------")
+			print("TARGET FOUND")
+			print("------------")
 
-		# Transmitter has changed position so set range back to default to attempt best accuracy
-		if value not in val_range:
-			range_factor = 2
-			searching = True
+		old_rssi = rssi
 
-		while searching == True:
-			angle = motor.move(angle, direction)
 
-			rssi, tx_power = getRSSIandTX()
-			value = round(rssi[0])
 
-			# Value is smaller then previous so change direction
-			if value < old_val:
-				direction = 1 if direction == 0 else 0  # Change direction
 
-			# Value is now getting smaller again so we have passed closest position
-			if value < max_val:
-				angle = motor.move(angle, direction)	# Move motor back a position
-				rssi, tx_power = getRSSIandTX()
-				searching = False
-				print ("This is as close as I can get")
-				d1 = pathloss(rssi[0], tx_power[0])
-				print ("The distance to transmitter is: {}".format(d1))
-
-			max_val = max([value, max_val])
-			old_val = value
-
-		value = rssi
-		print "rssi: {}".format(rssi)
-		print "----------------------------"
-
-	rssi, tx_power = getRSSIandTX()
 	d1 = pathloss(rssi[0])
 
 	# Debug Receiver value

@@ -52,6 +52,7 @@ def move(angle, direction):
 		angle = 0
 
 	setAngle(angle)
+	time.sleep(0.5)
 	return angle
 
 def motorCleanup():
