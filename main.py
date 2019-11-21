@@ -101,29 +101,22 @@ def search(rssi, angle):
     direction = -1 #default left
     dir_change = 0
 
-        while(1):
-            print("searhing...")
-            angle = motor.move(angle, direction)
-            rssi_new_list, tx_power_left = getRSSIandTX()
-            rssi_new = rssi_new_list[0]
-            #angle = motor.move(angle, 1)
-            #angle = motor.move(angle, 1)
-            #rssi_right_list, tx_power_right = getRSSIandTX()
-            #rssi_right = rssi_right_list[0]
-
-            #print "rssi left: ", rssi_left
-            #print "rssi right: ", rssi_right
-            #print "rssi: ", rssi
-
-    if rssi > rssi_new:
-        print "Changeing Direction"
-        direction = direction * -1
-        dir_change++
+    while(1):
+        print("searhing...")
         angle = motor.move(angle, direction)
-        if dir_change >= 3:
-        return angle, rssi
-    else:
-        print("IM CONFUSED")
+        rssi_new_list, tx_power_left = getRSSIandTX()
+        rssi_new = rssi_new_list[0]
+
+        if rssi > rssi_new:
+            print "Changeing Direction"
+            direction = direction * -1
+            dir_change += 1
+            angle = motor.move(angle, direction)
+            if dir_change >= 3:
+                return angle, rssi
+        else:
+            print("IM CONFUSED")
+
     return angle, rssi
 
 # Main
@@ -133,19 +126,19 @@ if __name__=="__main__":
     old_rssi = 0		# The max RSSI value in a cycle
     motor.setAngle(90)
     while(1):
-    rssi_list, tx_power = getRSSIandTX()
-    rssi = rssi_list[0]
+        rssi_list, tx_power = getRSSIandTX()
+        rssi = rssi_list[0]
 
-    if (abs(rssi-old_rssi) > 3):
-    #find node again
-    print("Target has moved")
-    angle, rssi = search(rssi, angle)
-    print("------------")
-    print("TARGET FOUND, at a distance {} away".format(pathloss(rssi)))
-    print("------------")
+        if (abs(rssi-old_rssi) > 3):
+            #find node again
+            print("Target has moved")
+            angle, rssi = search(rssi, angle)
+            print("------------")
+            print("TARGET FOUND, at a distance {} away".format(pathloss(rssi)))
+            print("------------")
 
 
-    old_rssi = rssi
+        old_rssi = rssi
 
     # Debug Receiver value
     print "rssi: {}".format(rssi)
