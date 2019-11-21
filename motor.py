@@ -39,11 +39,11 @@ def move(angle, direction):
 	:return: 			The new angle of the servo motor
 	'''
 
-	if direction == 0:
-		print "Try turning left"
+	if direction == 1:
+		print "Turning right"
 		angle = angle + 18
-	else:
-		print "Try turning right"
+	elif direction == -1:
+		print "Turning left"
 		angle = angle - 18
 
 	if angle > 180:
@@ -61,7 +61,7 @@ def motorCleanup():
 	'''
 	pwm.stop()
 	GPIO.cleanup()
-	
+
 def motorFullSpin():
 	'''
 	moves the servo motor back and fourth (180 degrees).  Used for testing purposes.
@@ -94,18 +94,16 @@ def motorFullSpin():
 			time.sleep(0.5)
 	except KeyboardInterrupt:
 		motorCleanup()
-		
+
 def controlMotorAngle():
 	'''
 	Allows user to input desired angle for servo motor to point to.  Used for testing purposes
 	'''
 	try:
 		while True:
-			angle = input("Enter angle: ") 
+			angle = input("Enter angle: ")
 			print angle
 			setAngle(angle)
 			time.sleep(0.5)
 	except KeyboardInterrupt:
 		motorCleanup()
-
-

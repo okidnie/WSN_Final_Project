@@ -38,7 +38,7 @@ def getRSSIandTX():
 	# Value containers
 	rssi = [[]]
 	tx_power = [[]]
-	
+
 	# Open BLE socket
 	try:
 		sock = bluez.hci_open_dev(0)
@@ -53,7 +53,7 @@ def getRSSIandTX():
 
 	# Loop to scan the beacons
 	for x in range(iterations):
-		
+
 		returnedList = blescan.parse_events(sock, 10)
 		for beacon in returnedList:
 			details = beacon.split(',')
@@ -62,14 +62,14 @@ def getRSSIandTX():
 			if details[1] in beacons:
 				rssi[beacons.index(details[1])].append(float(details[5]))
 				tx_power[beacons.index(details[1])].append(float(details[4]))
-	
+
 	# Makeshift data filter. Try to play around with this part of the code to get the best quality of RSSI and Tx_Power values
 	for x in range(num_beacons):
 		#Mean Filter
 		rssi[x] = sum(rssi[x])/float(len(rssi[x]))
 		tx_power[x] = sum(tx_power[x])/float(len(tx_power[x]))
-	
-	
+
+
 	print ("node ", rssi[0]," : ",  tx_power[0])
 	return rssi, tx_power
 
@@ -87,78 +87,69 @@ def pathloss(rssi, tx_power):
 	distance = 10.0**((tx_power - rssi) / (10.0 * n))
 
 	return distance
-	
+
 # Calculate location of poit of interest based on its distance from 3 defined points
 def trilateration(d1, d2, d3, p, q, r):
 	x = (d1**2 - d2**2 + p**2) / (2.0 * p)
 	y = ((d1**2 - d2**2 + q**2 + r**2) / (2.0 * r)) - ((q / r) * x)
-	
+
 	receiver = []
 	receiver.append(x)
 	receiver.append(y)
 	return receiver
 
 def search(rssi, angle):
+		direction = -1 #default left
+		dir_change = 0
+
         while(1):
-		print("searhing...")
-		angle = motor.move(angle, 0)
-		rssi_left_list, tx_power_left = getRSSIandTX()
-		rssi_left = rssi_left_list[0]
-		angle = motor.move(angle, 1)
-		angle = motor.move(angle, 1)
-		rssi_right_list, tx_power_right = getRSSIandTX()
-		rssi_right = rssi_right_list[0]
+			print("searhing...")
+			angle = motor.move(angle, direction)
+			rssi_new_list, tx_power_left = getRSSIandTX()
+			rssi_new = rssi_new_list[0]
+			#angle = motor.move(angle, 1)
+			#angle = motor.move(angle, 1)
+			#rssi_right_list, tx_power_right = getRSSIandTX()
+			#rssi_right = rssi_right_list[0]
 
-		print "rssi left: ", rssi_left
-		print "rssi right: ", rssi_right
-		print "rssi: ", rssi
+			#print "rssi left: ", rssi_left
+			#print "rssi right: ", rssi_right
+			#print "rssi: ", rssi
 
-		if rssi > rssi_left and rssi > rssi_right:
-			angle = motor.move(angle, 0)
-			return angle, rssi
-		elif rssi_left >= rssi and rssi_left >= rssi_right:
-			rssi = rssi_left
-			angle = motor.move(angle, 0)
-			angle = motor.move(angle, 0)
-		elif rssi_right >= rssi and rssi_right >= rssi_left:
-			rssi= rssi_right
-		else:
-			print("IM CONFUSED")
+			if rssi > rssi_new:
+				print "Changeing Direction"
+				direction = direction * -1
+				dir_change++
+				angle = motor.move(angle, direction)
+				if dir_change >= 3:
+					return angle, rssi
+			else:
+				print("IM CONFUSED")
 	return angle, rssi
 
 # Main
 if __name__=="__main__":
-	angle = 0			# Current angle of the motor
+	angle = 90			# Current angle of the motor
 	value = 0			# Current RSSI value
-	direction = 0 		# 0 if turn left, 1 is turn right
-        old_rssi = 0			# The max RSSI value in a cycle
-	searching = False	# wether the system needs to be searching for signal direction or not
-	range_factor = 2	# error value
+    old_rssi = 0		# The max RSSI value in a cycle
+	motor.setAngle(90)
 	while(1):
 		rssi_list, tx_power = getRSSIandTX()
 		rssi = rssi_list[0]
-                #val_range = range(int(round(rssi[0]) - range_factor), int(round(rssi[0]) + range_factor))
-		
-		if (abs(rssi-old_rssi) > 2):
+
+		if (abs(rssi-old_rssi) > 3):
 			#find node again
 			print("Target has moved")
 			angle, rssi = search(rssi, angle)
 			print("------------")
-			print("TARGET FOUND")
+			print("TARGET FOUND, at a distance {} away".format(pathloss(rssi)))
 			print("------------")
 
+
 		old_rssi = rssi
-
-
-
-
-	d1 = pathloss(rssi[0])
 
 	# Debug Receiver value
 	print "rssi: {}".format(rssi)
 
 	# Clean motor pwm and GPIO
 	motor.motorCleanup()
-
-
-
