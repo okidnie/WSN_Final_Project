@@ -64,10 +64,10 @@ def getRSSIandTX():
                 tx_power[beacons.index(details[1])].append(float(details[4]))
 
             # Makeshift data filter. Try to play around with this part of the code to get the best quality of RSSI and Tx_Power values
-            for x in range(num_beacons):
-                #Mean Filter
-                rssi[x] = sum(rssi[x])/float(len(rssi[x]))
-                tx_power[x] = sum(tx_power[x])/float(len(tx_power[x]))
+    for x in range(num_beacons):
+        #Mean Filter
+        rssi[x] = sum(rssi[x])/float(len(rssi[x]))
+        tx_power[x] = sum(tx_power[x])/float(len(tx_power[x]))
 
 
     return rssi, tx_power
@@ -112,10 +112,8 @@ def search(rssi, angle):
             direction = direction * -1
             dir_change += 1
             angle = motor.move(angle, direction)
-            if dir_change >= 3:
+            if dir_change >= 2:
                 return angle, rssi
-        else:
-            print("IM CONFUSED")
 
     return angle, rssi
 
@@ -129,12 +127,12 @@ if __name__=="__main__":
         rssi_list, tx_power = getRSSIandTX()
         rssi = rssi_list[0]
 
-        if (abs(rssi-old_rssi) > 3):
+        if (abs(rssi-old_rssi) > 5):
             #find node again
             print("Target has moved")
             angle, rssi = search(rssi, angle)
             print("------------")
-            print("TARGET FOUND, at a distance {} away".format(pathloss(rssi)))
+            print("TARGET FOUND")
             print("------------")
 
 

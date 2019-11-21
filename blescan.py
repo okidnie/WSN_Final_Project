@@ -9,7 +9,7 @@ DEBUG = False
 # https://kernel.googlesource.com/pub/scm/bluetooth/bluez/+/5.6/lib/hci.h for opcodes
 # https://github.com/pauloborges/bluez/blob/master/lib/hci.c#L2782 for functions used by lescan
 
-# performs a simple device inquiry, and returns a list of ble advertizements
+# performs a simple device inquiry, and returns a list of ble advertizements 
 # discovered device
 
 # NOTE: Python's struct.pack() will add padding bytes unless you make the endianness explicit. Little endian
@@ -52,13 +52,13 @@ def returnnumberpacket(pkt):
     for c in pkt:
         myInteger +=  struct.unpack("B",c)[0] * multiple
         multiple = 1
-    return myInteger
+    return myInteger 
 
 def returnstringpacket(pkt):
     myString = "";
     for c in pkt:
         myString +=  "%02x" %struct.unpack("B",c)[0]
-    return myString
+    return myString 
 
 def printpacket(pkt):
     for c in pkt:
@@ -68,7 +68,7 @@ def get_packed_bdaddr(bdaddr_string):
     packable_addr = []
     addr = bdaddr_string.split(':')
     addr.reverse()
-    for b in addr:
+    for b in addr: 
         packable_addr.append(int(b, 16))
     return struct.pack("<BBBBBB", *packable_addr)
 
@@ -111,16 +111,16 @@ def hci_le_set_scan_parameters(sock):
     SCAN_TYPE = 0x01
 
 
-
+    
 def parse_events(sock, loop_count=100):
     old_filter = sock.getsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, 14)
-
+   
     # perform a device inquiry on bluetooth device #0
     # The inquiry should last 8 * 1.28 = 10.24 seconds
     # before the inquiry is performed, bluez should flush its cache of
     # previously discovered devices
     flt = bluez.hci_filter_new()
-
+    
     bluez.hci_filter_all_events(flt)
     bluez.hci_filter_set_ptype(flt, bluez.HCI_EVENT_PKT)
     sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
@@ -130,13 +130,13 @@ def parse_events(sock, loop_count=100):
     for i in range(0, loop_count):
         pkt = sock.recv(255)
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
-        #print "--------------"
+        #print "--------------" 
         if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
-            i = 0
+		i =0
         elif event == bluez.EVT_NUM_COMP_PKTS:
-            i = 0
+                i =0 
         elif event == bluez.EVT_DISCONN_COMPLETE:
-            i = 0
+                i =0 
         elif event == LE_META_EVENT:
             subevent, = struct.unpack("B", pkt[3])
             pkt = pkt[4:]
@@ -147,35 +147,36 @@ def parse_events(sock, loop_count=100):
                 num_reports = struct.unpack("B", pkt[0])[0]
                 report_pkt_offset = 0
                 for i in range(0, num_reports):
-
-                if (DEBUG == True):
-                    print "-------------"
-                    #print "\tfullpacket: ", printpacket(pkt)
-                    print "\tUDID: ", printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6])
-                    print "\tMAJOR: ", printpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4])
-                    print "\tMINOR: ", printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2])
-                    print "\tMAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
-                    # commented out - don't know what this byte is.  It's NOT TXPower
-                    txpower, = struct.unpack("b", pkt[report_pkt_offset -2])
-                    print "\t(Unknown):", txpower
-
-                    rssi, = struct.unpack("b", pkt[report_pkt_offset -1])
-                    print "\tRSSI:", rssi
-                    # build the return string
+		
+		    if (DEBUG == True):
+			print "-------------"
+                    	#print "\tfullpacket: ", printpacket(pkt)
+		    	print "\tUDID: ", printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6])
+		    	print "\tMAJOR: ", printpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4])
+		    	print "\tMINOR: ", printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2])
+                    	print "\tMAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
+		    	# commented out - don't know what this byte is.  It's NOT TXPower
+                    	txpower, = struct.unpack("b", pkt[report_pkt_offset -2])
+                    	print "\t(Unknown):", txpower
+	
+                    	rssi, = struct.unpack("b", pkt[report_pkt_offset -1])
+                    	print "\tRSSI:", rssi
+		    # build the return string
                     Adstring = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
-                    Adstring += ","
-                    Adstring += returnstringpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6])
-                    Adstring += ","
-                    Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4])
-                    Adstring += ","
-                    Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2])
-                    Adstring += ","
-                    Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -2])
-                    Adstring += ","
-                    Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -1])
+		    Adstring += ","
+		    Adstring += returnstringpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6]) 
+		    Adstring += ","
+		    Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4]) 
+		    Adstring += ","
+		    Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2]) 
+		    Adstring += ","
+		    Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -2])
+		    Adstring += ","
+		    Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -1])
 
-                    #print "\tAdstring=", Adstring
-                    myFullList.append(Adstring)
-                    done = True
+		    #print "\tAdstring=", Adstring
+ 		    myFullList.append(Adstring)
+                done = True
     sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )
     return myFullList
+
