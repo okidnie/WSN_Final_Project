@@ -12,11 +12,15 @@ import RPi.GPIO as GPIO
 import time
 
 servo1Pin = 03
-GPIO.setmode(GPIO.BOARD)
+LEDPin = 04
+GPIO.setmode(GPIO.BCM)
 GPIO.setup(servo1Pin, GPIO.OUT)
+GPIO.setup(LEDPin, GPIO.OUT)
 pwm = GPIO.PWM(servo1Pin, 50)
 pwm.start(0)
 
+def LEDToggle(mode):
+    GPIO.output(LEDPin, mode)
 
 def setAngle(angle):
     '''
@@ -25,10 +29,10 @@ def setAngle(angle):
     '''
 
     duty = angle/18 + 2
-    GPIO.output(03, True)
+    GPIO.output(servo1Pin, True)
     pwm.ChangeDutyCycle(duty)
     time.sleep(1)
-    GPIO.output(03, False)
+    GPIO.output(servo1Pin, False)
     pwm.ChangeDutyCycle(0)
 
 def move(angle, direction):

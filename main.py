@@ -6,7 +6,7 @@ Author:		Nathan Klassen
 Author:		Owen Kidnie
 
 The main file used in this project.
-=Makes use of motor.py to find the direction of a Bluetooth signal.
+Makes use of motor.py to find the direction of a Bluetooth signal.
 Beacon scanner code taken from https://github.com/switchdoclabs/iBeacon-Scanner-.git.
 '''
 
@@ -23,9 +23,24 @@ import motor
 import sys
 import bluetooth._bluetooth as bluez
 import time
+import RPi.GPIO as GPIO_main
 
-beacons = ["a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"] # List of beacon UUIDs
-iterations = 25 # Number of times the pi scans for the beacons
+#LEDPin = 26
+#GPIO_main.setmode(GPIO.BOARD)
+#GPIO_main.setup(LEDPin, GPIO.OUT)
+
+beacons = ["a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"] # List of beacon UUIDs  
+'''
+UUIDS:
+a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1 - Beacon A1
+Ones that might be my phone:
+6f08f408e3887626a11493aa5caaa2a3 - possibly my laptop
+fe000000000000000000000000000000 - dont know what this is
+b483b0b20e7130e7738fb58fd900e03b
+'''
+
+
+iterations = 20 # Number of times the pi scans for the beacons
 
 num_beacons = len(beacons)
 
@@ -63,12 +78,17 @@ def getRSSIandTX():
                 rssi[beacons.index(details[1])].append(float(details[5]))
                 tx_power[beacons.index(details[1])].append(float(details[4]))
 
-            # Makeshift data filter. Try to play around with this part of the code to get the best quality of RSSI and Tx_Power values
+    # Makeshift data filter. Try to play around with this part of the code to get the best quality of RSSI and Tx_Power values
     for x in range(num_beacons):
         #Mean Filter
-        rssi[x] = sum(rssi[x])/float(len(rssi[x]))
-        tx_power[x] = sum(tx_power[x])/float(len(tx_power[x]))
-
+        try:
+            #rssi[x] = rssi[x][10]
+            rssi[x] = sum(rssi[x][10:])/float(len(rssi[x][10:]))
+            tx_power[x] = sum(tx_power[x])/float(len(tx_power[x]))
+        except:
+            print "lost connection"
+            return [0],[0]
+                
 
     return rssi, tx_power
 
@@ -98,24 +118,46 @@ def trilateration(d1, d2, d3, p, q, r):
     return receiver
 
 def search(rssi, angle):
-    direction = -1 #default left
+    direction = -1 #default is left
     dir_change = 0
+    times_moved = 0
+    rssi_dict = {}
+
+    rssi_dict[angle] = rssi
 
     while(1):
         print("searhing...")
         angle = motor.move(angle, direction)
+        times_moved += 1
         rssi_new_list, tx_power_left = getRSSIandTX()
         rssi_new = rssi_new_list[0]
-
-        if rssi > rssi_new:
+        
+        print "rssi: ", rssi
+        rssi_dict[angle] = rssi_new
+        if rssi > rssi_new and rssi_new != 0:
             print "Changeing Direction"
             direction = direction * -1
             dir_change += 1
             angle = motor.move(angle, direction)
-            if dir_change >= 2:
-                return angle, rssi
+            if (dir_change >= 2 and times_moved < 2) or (dir_change < 2 and times_moved > 2):
+                print rssi_dict
+                print angle
+                return angle, rssi_new
+            times_moved = 0  
+        elif angle == 0 or angle == 180:
+	    print "Changeing Direction"
+	    direction = direction * -1
+	    dir_change += 1
+	    angle = motor.move(angle, direction)
+	    times_moved = 0
+        elif rssi_new != 0:
+            rssi = rssi_new
+            rssi_dict[angle] = rssi_new
 
     return angle, rssi
+
+#def LEDToggle(mode):
+#    GPIO_main.output(LEDPin, GPIO.HIGH)
 
 # Main
 if __name__=="__main__":
@@ -123,20 +165,29 @@ if __name__=="__main__":
     value = 0			# Current RSSI value
     old_rssi = 0		# The max RSSI value in a cycle
     motor.setAngle(90)
+    motor.LEDToggle(False)
+    time.sleep(5)
     while(1):
         rssi_list, tx_power = getRSSIandTX()
         rssi = rssi_list[0]
+        print rssi
 
-        if (abs(rssi-old_rssi) > 5):
+        if ((abs(rssi-old_rssi) > 5) and (rssi != 0)):
             #find node again
             print("Target has moved")
+            motor.LEDToggle(False)
+            angle = 90
+            motor.setAngle(90)
+            rssi_list, tx_power = getRSSIandTX()
+            rssi = rssi_list[0]
             angle, rssi = search(rssi, angle)
             print("------------")
             print("TARGET FOUND")
             print("------------")
+            motor.LEDToggle(True)
 
-
-        old_rssi = rssi
+        if rssi != 0:
+            old_rssi = rssi
 
     # Debug Receiver value
     print "rssi: {}".format(rssi)
