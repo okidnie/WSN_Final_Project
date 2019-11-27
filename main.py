@@ -84,7 +84,7 @@ def pathloss(rssi, tx_power):
     Calculates the distance between two points of interest using RSSI and TX Power
 
     :param rssi: 		The RSSI of the packet
-    :param tx_power: 	The TX power of the packet
+    :param tx_power:    The TX power of the packet
     :return:			The distance from the packet
     '''
 
