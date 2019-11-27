@@ -11,36 +11,44 @@ Controls a servo motor through GPIO pinouts on a raspberry pi 3.
 import RPi.GPIO as GPIO
 import time
 
-servo1Pin = 03
+servoPin = 03
 LEDPin = 04
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(servo1Pin, GPIO.OUT)
+GPIO.setup(servoPin, GPIO.OUT)
 GPIO.setup(LEDPin, GPIO.OUT)
-pwm = GPIO.PWM(servo1Pin, 50)
+pwm = GPIO.PWM(servoPin, 50)
 pwm.start(0)
 
 def LEDToggle(mode):
+    '''
+    Toggles an led using the GPIO pin set at LEDPin
+
+    :param mode:    True turns LED on and False turns LED off
+    '''
+
     GPIO.output(LEDPin, mode)
 
 def setAngle(angle):
     '''
     Sets the angle of the servo motor
-    :param angle: the desired angle to set the servo motor to
+
+    :param angle:   the desired angle to set the servo motor to
     '''
 
     duty = angle/18 + 2
-    GPIO.output(servo1Pin, True)
+    GPIO.output(servoPin, True)
     pwm.ChangeDutyCycle(duty)
     time.sleep(1)
-    GPIO.output(servo1Pin, False)
+    GPIO.output(servoPin, False)
     pwm.ChangeDutyCycle(0)
 
 def move(angle, direction):
     '''
     Moves the servo motor left or right by 18 degrees
-    :param angle: 		The current angle of the servo motor
-    :param direction: 	The desired direction (left or right)
-    :return: 			The new angle of the servo motor
+
+    :param angle:       The current angle of the servo motor
+    :param direction:   The desired direction (left or right)
+    :return:            The new angle of the servo motor
     '''
 
     if direction == 1:
@@ -63,12 +71,14 @@ def motorCleanup():
     '''
     cleans up GPIO pin and stops servo motor
     '''
+
     pwm.stop()
     GPIO.cleanup()
 
 def motorFullSpin():
     '''
-    moves the servo motor back and fourth (180 degrees).  Used for testing purposes.
+    moves the servo motor back and fourth (180 degrees).
+    Used for testing purposes.
     '''
 
     print("Starting to spin\n")
@@ -101,8 +111,10 @@ def motorFullSpin():
 
 def controlMotorAngle():
     '''
-    Allows user to input desired angle for servo motor to point to.  Used for testing purposes
+    Allows user to input desired angle for servo motor to point to.
+    Used for testing purposes.
     '''
+
     try:
         while True:
             angle = input("Enter angle: ")

@@ -23,30 +23,17 @@ import motor
 import sys
 import bluetooth._bluetooth as bluez
 import time
-import RPi.GPIO as GPIO_main
 
-#LEDPin = 26
-#GPIO_main.setmode(GPIO.BOARD)
-#GPIO_main.setup(LEDPin, GPIO.OUT)
+beacons = ["a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"]  # List of beacon UUIDs
 
-beacons = ["a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"] # List of beacon UUIDs  
-'''
-UUIDS:
-a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1 - Beacon A1
-Ones that might be my phone:
-6f08f408e3887626a11493aa5caaa2a3 - possibly my laptop
-fe000000000000000000000000000000 - dont know what this is
-b483b0b20e7130e7738fb58fd900e03b
-'''
-
-
-iterations = 20 # Number of times the pi scans for the beacons
+iterations = 20  # Number of times the pi scans for the beacons
 
 num_beacons = len(beacons)
 
 def getRSSIandTX():
     '''
     Obtains the RSSI and TX values of the packet
+
     :return: rssi, and tx_power
     '''
 
@@ -61,7 +48,6 @@ def getRSSIandTX():
     except:
         print "error accessing bluetooth device..."
         sys.exit(1)
-
 
     blescan.hci_le_set_scan_parameters(sock)
     blescan.hci_enable_le_scan(sock)
@@ -78,11 +64,12 @@ def getRSSIandTX():
                 rssi[beacons.index(details[1])].append(float(details[5]))
                 tx_power[beacons.index(details[1])].append(float(details[4]))
 
-    # Makeshift data filter. Try to play around with this part of the code to get the best quality of RSSI and Tx_Power values
+    # Makeshift data filter. Try to play around with this
+    # part of the code to get the best quality of RSSI and Tx_Power values.
+    # The first 10 RSSI readings are filtered out to try and mitigate outlying values
     for x in range(num_beacons):
-        #Mean Filter
+        # Mean Filter
         try:
-            #rssi[x] = rssi[x][10]
             rssi[x] = sum(rssi[x][10:])/float(len(rssi[x][10:]))
             tx_power[x] = sum(tx_power[x])/float(len(tx_power[x]))
         except:
@@ -92,7 +79,6 @@ def getRSSIandTX():
 
     return rssi, tx_power
 
-# Calculates the distance between two points of interest using RSSI and TX Power
 def pathloss(rssi, tx_power):
     '''
     Calculates the distance between two points of interest using RSSI and TX Power
@@ -107,17 +93,15 @@ def pathloss(rssi, tx_power):
 
     return distance
 
-# Calculate location of poit of interest based on its distance from 3 defined points
-def trilateration(d1, d2, d3, p, q, r):
-    x = (d1**2 - d2**2 + p**2) / (2.0 * p)
-    y = ((d1**2 - d2**2 + q**2 + r**2) / (2.0 * r)) - ((q / r) * x)
-
-    receiver = []
-    receiver.append(x)
-    receiver.append(y)
-    return receiver
-
 def search(rssi, angle):
+    '''
+    Searches for the position of stringest RSSI
+
+    :param rssi:    The current RSSI value
+    :param angle:   The current angle of the servo motor
+    :return:        The stringest RSSI value found, and the angle of that reading
+    '''
+
     direction = -1 #default is left
     dir_change = 0
     times_moved = 0
@@ -145,28 +129,26 @@ def search(rssi, angle):
                 return angle, rssi_new
             times_moved = 0  
         elif angle == 0 or angle == 180:
-	    print "Changeing Direction"
-	    direction = direction * -1
-	    dir_change += 1
-	    angle = motor.move(angle, direction)
-	    times_moved = 0
+            print "Changeing Direction"
+            direction = direction * -1
+            dir_change += 1
+            angle = motor.move(angle, direction)
+            times_moved = 0
         elif rssi_new != 0:
             rssi = rssi_new
             rssi_dict[angle] = rssi_new
 
     return angle, rssi
 
-#def LEDToggle(mode):
-#    GPIO_main.output(LEDPin, GPIO.HIGH)
-
 # Main
 if __name__=="__main__":
     angle = 90			# Current angle of the motor
     value = 0			# Current RSSI value
-    old_rssi = 0		# The max RSSI value in a cycle
+    old_rssi = 0		# previous RSSI value
+
     motor.setAngle(90)
     motor.LEDToggle(False)
-    time.sleep(5)
+
     while(1):
         rssi_list, tx_power = getRSSIandTX()
         rssi = rssi_list[0]
